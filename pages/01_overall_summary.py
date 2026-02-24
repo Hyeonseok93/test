@@ -1,0 +1,120 @@
+import streamlit as st
+import pandas as pd
+import os
+from datetime import datetime
+
+st.set_page_config(page_title="전체 요약", page_icon="🏪", layout="wide")
+
+# CSS 로드
+if os.path.exists("style.css"):
+    with open("style.css", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+@st.cache_data(ttl=3600)
+def get_data():
+    file_path = os.path.join('data', 'categorized_data.csv')
+    if not os.path.exists(file_path):
+        return pd.DataFrame()
+    
+    df = pd.read_csv(file_path)
+    df['event'] = df['event'].str.replace(' ', '', regex=False)
+    df['price'] = df['price'].astype(str).str.replace(r'[^\d.]', '', regex=True)
+    df['price'] = pd.to_numeric(df['price'], errors='coerce').fillna(0).astype(int)
+
+    def calc_info(row):
+        e, p = row['event'], row['price']
+        if e == '1+1': return p // 2, "50%"
+        if e == '2+1': return p // 3, "33%"
+        if e == '3+1': return p // 4, "25%"
+        return p, "0%"
+
+    df[['unit_price', 'discount_rate']] = df.apply(lambda x: pd.Series(calc_info(x)), axis=1)
+    return df.drop_duplicates(subset=['name', 'event', 'brand'])
+
+df = get_data()
+
+st.title(f"🏪 {datetime.now().strftime('%Y년 %m월')} 편의점 행사 정보 통합 보드")
+
+if not df.empty:
+    # 필터 영역 (Expander + 한 줄 통합)
+    with st.expander("🔍 상세 필터 및 검색", expanded=True):
+        f1, f2, f3, f4, f5 = st.columns([1, 1, 1, 1.5, 1])
+        with f1:
+            brand_list = sorted(df['brand'].unique().tolist())
+            selected_brands = st.multiselect("🏪 브랜드", brand_list, default=brand_list)
+        with f2:
+            # 행사 필터: SALE, 세일 제외
+            event_list = sorted([e for e in df['event'].unique().tolist() if e not in ['SALE', '세일']])
+            selected_events = st.multiselect("🎁 행사", event_list, default=event_list)
+        with f3:
+            # 카테고리 필터
+            cat_list = sorted(df['category'].unique().tolist())
+            selected_cats = st.multiselect("📂 분류", cat_list, default=cat_list)
+        with f4:
+            search_query = st.text_input("📝 검색", "", placeholder="상품명 입력")
+        with f5:
+            sort_option = st.selectbox("💰 정렬", ["기본", "가격 낮은 순", "가격 높은 순"])
+
+    # 데이터 필터링
+    filtered_df = df[
+        (df['brand'].isin(selected_brands)) & 
+        (df['event'].isin(selected_events)) &
+        (df['category'].isin(selected_cats)) &
+        (df['name'].str.contains(search_query, case=False))
+    ]
+
+    if sort_option == "가격 낮은 순":
+        filtered_df = filtered_df.sort_values(by='unit_price', ascending=True)
+    elif sort_option == "가격 높은 순":
+        filtered_df = filtered_df.sort_values(by='unit_price', ascending=False)
+
+    # 상품 리스트 출력
+    items_per_page = 30
+    total_pages = max((len(filtered_df) // items_per_page) + (1 if len(filtered_df) % items_per_page > 0 else 0), 1)
+
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = 1
+
+    query_hash = search_query + str(selected_cats) + str(selected_events) + str(selected_brands) + sort_option
+    if 'last_query' not in st.session_state or st.session_state.last_query != query_hash:
+        st.session_state.current_page = 1
+        st.session_state.last_query = query_hash
+
+    start_idx = (st.session_state.current_page - 1) * items_per_page
+    display_df = filtered_df.iloc[start_idx: start_idx + items_per_page]
+
+    if not display_df.empty:
+        cols = st.columns(5)
+        for idx, (_, row) in enumerate(display_df.iterrows()):
+            with cols[idx % 5]:
+                img_url = row['img_url'] if pd.notna(row['img_url']) else ""
+                st.markdown(f"""
+                    <div class="product-card">
+                        <div class="img-container"><img src="{img_url}"></div>
+                        <div class="product-name">{row['name']}</div>
+                        <div style="margin-top: 8px;">
+                            <span style="font-size: 1.2rem; font-weight: 800; color: #ffffff;">{row['price']:,}원</span>
+                            <span style="font-size: 0.85rem; color: #ff6b6b; font-weight: bold; margin-left: 5px;">({row['discount_rate']}↓)</span>
+                        </div>
+                        <div class="unit-price-text">개당 <b>{row['unit_price']:,}원</b></div>
+                        <div class="brand-text">📍 {row['brand']} | <span class="event-tag">{row['event']}</span></div>
+                    </div>
+                """, unsafe_allow_html=True)
+
+        # 페이지네이션
+        st.markdown("---")
+        _, b1, p_box, b2, _ = st.columns([4, 0.3, 1, 0.3, 4])
+        with b1:
+            if st.button("❮", key="prev_btn") and st.session_state.current_page > 1:
+                st.session_state.current_page -= 1
+                st.rerun()
+        with p_box:
+            st.markdown(f"<div class='page-info-box'>{st.session_state.current_page} / {total_pages}</div>", unsafe_allow_html=True)
+        with b2:
+            if st.button("❯", key="next_btn") and st.session_state.current_page < total_pages:
+                st.session_state.current_page += 1
+                st.rerun()
+    else:
+        st.warning("결과가 없습니다.")
+else:
+    st.info("데이터를 로드하는 중입니다...")
