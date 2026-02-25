@@ -23,48 +23,54 @@ st.title("🎲 오늘의 럭키픽!")
 st.markdown("##### 메뉴 결정이 힘드신가요? 럭키박스를 열어 오늘의 행사 상품을 확인하세요!")
 
 if not df.empty:
-    col1, col2 = st.columns([1, 2])
+    # --- 상단 필터 설정 영역 (일렬 배치) ---
+    with st.expander("🛠️ 럭키픽 필터 설정", expanded=True):
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            if 'category' in df.columns:
+                categories = ["전체"] + sorted(df['category'].dropna().unique().tolist())
+            else:
+                categories = ["전체"]
+            selected_cat = st.selectbox("📂 카테고리 선택", categories)
+        
+        with col2:
+            if 'brand' in df.columns:
+                brands = sorted(df['brand'].dropna().unique().tolist())
+            else:
+                brands = []
+            selected_brand = st.multiselect("🏪 브랜드 선택 (미선택 시 전체)", brands, default=brands)
+
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    with col1:
-        st.subheader("🛠️ 필터 설정")
-        # 카테고리 목록 추출
-        if 'category' in df.columns:
-            categories = ["전체"] + sorted(df['category'].dropna().unique().tolist())
-        else:
-            categories = ["전체"]
-            
-        selected_cat = st.selectbox("📂 카테고리", categories)
-        
-        # 브랜드 목록 추출
-        if 'brand' in df.columns:
-            brands = sorted(df['brand'].dropna().unique().tolist())
-        else:
-            brands = []
-            
-        selected_brand = st.multiselect("🏪 브랜드", brands, default=brands)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
+    # --- 중앙 실행 버튼 ---
+    _, btn_col, _ = st.columns([1, 1, 1])
+    with btn_col:
         pick_button = st.button("🎁 럭키박스 열기!", use_container_width=True, type="primary")
 
-    with col2:
-        if pick_button:
-            # 필터링
-            filtered_df = df[df['brand'].isin(selected_brand)]
-            if selected_cat != "전체":
-                filtered_df = filtered_df[filtered_df['category'] == selected_cat]
-            
-            if not filtered_df.empty:
-                with st.spinner("🎲 행운의 상품을 고르는 중..."):
-                    time.sleep(1) # 애니메이션 효과
-                    picked_item = filtered_df.sample(n=1).iloc[0]
-                    
-                    st.balloons()
-                    st.success(f"🎉 오늘의 추천 상품은 **{picked_item['name']}** 입니다!")
-                    
-                    # 이미지 URL 처리
-                    img_url = picked_item['img_url'] if pd.notna(picked_item['img_url']) else "https://via.placeholder.com/250?text=No+Image"
-                    
-                    # 결과 카드 디자인
+    st.markdown("---")
+
+    # --- 하단 결과 출력 영역 ---
+    if pick_button:
+        # 필터링
+        filtered_df = df[df['brand'].isin(selected_brand)] if selected_brand else df
+        if selected_cat != "전체":
+            filtered_df = filtered_df[filtered_df['category'] == selected_cat]
+        
+        if not filtered_df.empty:
+            with st.spinner("🎲 행운의 상품을 고르는 중..."):
+                time.sleep(1) # 애니메이션 효과
+                picked_item = filtered_df.sample(n=1).iloc[0]
+                
+                st.balloons()
+                st.success(f"🎉 오늘의 추천 상품은 **{picked_item['name']}** 입니다!")
+                
+                # 이미지 URL 처리
+                img_url = picked_item['img_url'] if pd.notna(picked_item['img_url']) else "https://via.placeholder.com/250?text=No+Image"
+                
+                # 결과 카드 (중앙 정렬을 위해 다시 컬럼 사용)
+                _, res_col, _ = st.columns([1, 2, 1])
+                with res_col:
                     st.markdown(f"""
                         <div style="background-color: #161b22; border: 2px solid #58a6ff; border-radius: 20px; padding: 30px; text-align: center;">
                             <div style="background: white; padding: 10px; border-radius: 15px; display: inline-block; margin-bottom: 20px;">
@@ -81,17 +87,20 @@ if not df.empty:
                             <p style="color: #58a6ff; font-weight: bold; font-size: 1.1rem;">지금 바로 집 앞 {picked_item['brand']}(으)로 달려가세요! 🏃‍♂️</p>
                         </div>
                     """, unsafe_allow_html=True)
-            else:
-                st.warning("선택하신 조건에 맞는 상품이 없습니다. 필터를 조정해 보세요!")
         else:
-            # 대기 상태 이미지 또는 아이콘
-            st.markdown("""
-                <div style="height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #30363d; border-radius: 20px; color: #8b949e;">
-                    <div style="font-size: 5rem; margin-bottom: 20px;">🎁</div>
-                    <h3>어떤 상품이 나올까요?</h3>
-                    <p>버튼을 눌러 럭키박스를 열어보세요!</p>
-                </div>
-            """, unsafe_allow_html=True)
+            st.warning("선택하신 조건에 맞는 상품이 없습니다. 필터를 조정해 보세요!")
+    else:
+        # 대기 상태
+        st.markdown("""
+            <div style="height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #30363d; border-radius: 20px; color: #8b949e;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎁</div>
+                <h3>어떤 상품이 나올까요?</h3>
+                <p>위의 버튼을 눌러 럭키박스를 열어보세요!</p>
+            </div>
+        """, unsafe_allow_html=True)
+
+else:
+    st.error("데이터를 불러올 수 없습니다. data/categorized_data.csv 파일을 확인해주세요.")
 
 else:
     st.error("데이터를 불러올 수 없습니다. data/categorized_data.csv 파일을 확인해주세요.")
