@@ -2,10 +2,18 @@ import pandas as pd
 import glob
 from loguru import logger
 import os
+from datetime import datetime
+import pytz
 
 
 def clean_and_merge_batch():
     logger.info("데이터 정제를 시작합니다.")
+
+    kst = pytz.timezone('Asia/Seoul')
+
+    # ex) 26년 3월 로 바뀌면 "2603"이 된 파일들 읽어옴
+    now_kst = datetime.now(kst)
+    current_target = now_kst.strftime("%y%m")
 
     # data/ 폴더 안의 모든 csv 파일 찾기
     raw_files = glob.glob("data/*.csv")
@@ -17,10 +25,10 @@ def clean_and_merge_batch():
     ]
 
     if not all_files:
-        logger.error("data/ 폴더 안에 처리할 CSV 파일이 없습니다.")
+        logger.error(f"data/ 폴더 안에 {current_target}(현재 달)에 해당하는 CSV 파일이 없습니다.")
         return
 
-    logger.info(f"정제 대상 파일: {all_files}")
+    logger.info(f"정제 대상 파일 ({current_target} 데이터): {all_files}")
 
     df_list = []
 
@@ -28,7 +36,6 @@ def clean_and_merge_batch():
         try:
             df = pd.read_csv(file, encoding='utf-8-sig')
 
-            # 가격 데이터에서 숫자만 추출
             df['price'] = df['price'].astype(str).str.replace(r'[^0-9]', '', regex=True)
             df['price'] = pd.to_numeric(df['price'], errors='coerce').fillna(0).astype(int)
 
@@ -42,6 +49,7 @@ def clean_and_merge_batch():
         logger.error("로드된 데이터가 없습니다.")
         return
 
+        # 데이터 통합
     combined_df = pd.concat(df_list, ignore_index=True)
 
     # 필수 컬럼 결측치 제거 및 중복 제거

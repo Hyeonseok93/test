@@ -10,10 +10,12 @@ from batch.script.crawl_batch_script import get_next_month_data_batch
 from datetime import datetime
 
 TARGET_YEAR = 2026
-TARGET_MONTH = 2
+TARGET_MONTH = 3
+
+test_run_time = datetime(2026, 3, 1, 0, 30, 0)
 
 print(f"Running batch test for {TARGET_YEAR}-{TARGET_MONTH} (dry-run)")
-get_next_month_data_batch(TARGET_YEAR, TARGET_MONTH, dry_run=False, run_time=datetime.now())
+get_next_month_data_batch(TARGET_YEAR, TARGET_MONTH, dry_run=False, run_time=test_run_time)
 
 log_dir = os.path.join(PROJECT_ROOT, 'batch', 'batch_script_log', f"{str(TARGET_YEAR)[-2:]}_{TARGET_MONTH}")
 print('Expected log dir:', log_dir)
