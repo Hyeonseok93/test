@@ -4,7 +4,7 @@ import random
 import os
 import time
 
-st.set_page_config(page_title="오늘의 럭키픽", page_icon="🎲", layout="wide")
+st.set_page_config(page_title="럭키박스", page_icon="🎁", layout="wide")
 
 # CSS 로드
 if os.path.exists("style.css"):
@@ -19,8 +19,8 @@ def get_data():
 
 df = get_data()
 
-st.title("🎲 오늘의 럭키픽!")
-st.markdown("##### 메뉴 결정이 힘드신가요? 럭키박스를 열어 오늘의 행사 상품을 확인하세요!")
+st.title("🎁 럭키박스")
+st.markdown("##### 오늘의 운명적 득템은? 럭키박스를 열어 당신을 기다리는 행운의 상품을 확인하세요!")
 
 if not df.empty:
     # --- 상단 필터 설정 영역 (일렬 배치) ---
