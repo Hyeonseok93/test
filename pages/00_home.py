@@ -27,6 +27,7 @@ st.markdown(f"""
 # 2. 추천 상품 섹션 (가로 스크롤)
 try:
     df_main = pd.read_csv('data/categorized_data.csv')
+    df_main = df_main[df_main['event'].astype(str).str.contains(r'\+', na=False, regex=True)]
     display_df = pd.DataFrame()
 
     # 타이틀 
