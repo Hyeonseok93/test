@@ -163,7 +163,7 @@ if not df.empty:
             event_brand_counts.index.name = '브랜드'
             st.dataframe(event_brand_counts, use_container_width=True)
 
-        st.subheader("💰 브랜드별 평균 개당 가격 (unit_price)")
+        st.subheader("💰 브랜드별 평균 개당 가격")
         avg_price_dict = dict(filtered_df.groupby('brand')['unit_price'].mean())
         avg_price = pd.DataFrame({
             '브랜드': brand_order,

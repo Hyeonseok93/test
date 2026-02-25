@@ -30,32 +30,38 @@ c1, c2, c3 = st.columns(3)
 
 with c1:
     st.markdown("""
-        <div class="dashboard-card">
-            <div class="card-icon">🔍</div>
-            <div class="card-title">전체 요약</div>
-            <div class="card-desc">이미지 기반의 카드 리스트로 모든 행사 상품을 검색하고 필터링하세요.</div>
-            <div style="margin-top:20px; color:#58a6ff; font-weight:bold;">이동하기 →</div>
-        </div>
+        <a href="/overall_summary" target="_self" style="text-decoration:none; color:inherit;">
+            <div class="dashboard-card" style="cursor:pointer;">
+                <div class="card-icon">🔍</div>
+                <div class="card-title">전체 요약</div>
+                <div class="card-desc">이미지 기반의 카드 리스트로 모든 행사 상품을 검색하고 필터링하세요.</div>
+                <div style="margin-top:20px; color:#58a6ff; font-weight:bold;">이동하기 →</div>
+            </div>
+        </a>
     """, unsafe_allow_html=True)
 
 with c2:
     st.markdown("""
-        <div class="dashboard-card">
-            <div class="card-icon">📊</div>
-            <div class="card-title">브랜드별 비교</div>
-            <div class="card-desc">어느 편의점이 가장 혜택이 좋을까요? 차트와 통계로 브랜드별 전략을 비교합니다.</div>
-            <div style="margin-top:20px; color:#58a6ff; font-weight:bold;">이동하기 →</div>
-        </div>
+        <a href="/brand_comparison" target="_self" style="text-decoration:none; color:inherit;">
+            <div class="dashboard-card" style="cursor:pointer;">
+                <div class="card-icon">📊</div>
+                <div class="card-title">브랜드별 비교</div>
+                <div class="card-desc">어느 편의점이 가장 혜택이 좋을까요? 차트와 통계로 브랜드별 전략을 비교합니다.</div>
+                <div style="margin-top:20px; color:#58a6ff; font-weight:bold;">이동하기 →</div>
+            </div>
+        </a>
     """, unsafe_allow_html=True)
 
 with c3:
     st.markdown("""
-        <div class="dashboard-card">
-            <div class="card-icon">💎</div>
-            <div class="card-title">가성비 비교</div>
-            <div class="card-desc">할인율이 가장 높은 TOP 50 상품만 모았습니다. 지갑을 지키는 가장 쉬운 방법!</div>
-            <div style="margin-top:20px; color:#58a6ff; font-weight:bold;">이동하기 →</div>
-        </div>
+        <a href="/best_value" target="_self" style="text-decoration:none; color:inherit;">
+            <div class="dashboard-card" style="cursor:pointer;">
+                <div class="card-icon">💎</div>
+                <div class="card-title">가성비 비교</div>
+                <div class="card-desc">할인율이 가장 높은 TOP 50 상품만 모았습니다. 지갑을 지키는 가장 쉬운 방법!</div>
+                <div style="margin-top:20px; color:#58a6ff; font-weight:bold;">이동하기 →</div>
+            </div>
+        </a>
     """, unsafe_allow_html=True)
 
 # 3. 하단 브랜드 로고 섹션
